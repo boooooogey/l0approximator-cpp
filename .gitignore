@@ -29,3 +29,6 @@
 
 #main
 main.cpp
+
+#python
+*.py
