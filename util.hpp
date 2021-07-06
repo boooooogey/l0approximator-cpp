@@ -4,6 +4,7 @@
 
 void backtrace(const RangeList& ranges, const double* xprimes, double* solution);
 void backtrace(const RangeList* ranges, const int& N, const double* xprimes, double* solution);
+int backtrace(const RangeList& ranges, const double& xprimes);
 
 template <typename T>
 void approximate(const int& n, const double* y, const double* lambda, const double* w, double* solution){
@@ -13,7 +14,7 @@ void approximate(const int& n, const double* y, const double* lambda, const doub
     f.append(y[0], w[0], T::domainninf);
     f.append(T::rangeninf, T::domaininf);
 
-    RangeList ranges(n);
+    RangeList ranges(n-1);
     double* xprimes = new double[n];
 
     double yprime;
@@ -80,4 +81,49 @@ void approximate(const int& n, const double* y, const int& N, const double* w, d
     delete[] gs;
     delete[] xprimes;
     delete[] ranges;
+}
+
+template <typename T>
+int findbreakpoint(const int& n, const double* y, const double* w){
+
+    PiecewiseFunction<T>* fs = new PiecewiseFunction<T>[2];
+    PiecewiseFunction<T>* gs = new PiecewiseFunction<T>[2];
+    for(int i = 0; i < 2; i++){
+        fs[i].append(y[0], w[0], T::domainninf);
+        fs[i].append(T::rangeninf, T::domaininf);
+    }
+
+    RangeList ranges(n-1);
+
+    double xprime, yprime;
+    T tmp;
+
+    for(int i = 1; i < n; i++){
+        for(int j = 1; j >= 0; j--){
+            yprime = T::rangeninf;
+
+            if( j <= i && j != 0){
+                fs[j-1].max(xprime,yprime);
+            }
+
+            if(j == i){
+                gs[j].reset();
+                gs[j].append(yprime, T::domainninf);
+                gs[j].append(T::rangeninf, T::domaininf);
+            }
+            else if(yprime != T::rangeninf){
+                fs[j].flood(yprime, gs[j], ranges[i-1]);
+            }
+            else{
+                gs[j] = fs[j];
+            }
+            tmp.set(y[i], w[i]);
+            fs[j] = gs[j] + tmp;
+        }
+    }
+    fs[1].max(xprime, yprime);
+    int bp = backtrace(ranges, xprime);
+    delete[] fs;
+    delete[] gs;
+    return bp;
 }

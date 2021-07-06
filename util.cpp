@@ -34,3 +34,17 @@ void backtrace(const RangeList* ranges, const int& N, const double* xprimes, dou
     }
 }
 
+int backtrace(const RangeList& ranges, const double& xprime){
+    int n = ranges.len() + 1;
+    double first, last;
+    for(int i = n-2; i >= 0; i--){
+        for(int j = 0; j < ranges.len(i); j++){
+            ranges.index(i, j, first, last);
+            if(first <= xprime && xprime <= last){
+                return i;
+            }
+        }
+    }
+    return -1;
+}
+
